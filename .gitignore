@@ -28,3 +28,4 @@ package-lock.json
 
 # WebStorm user-specific
 .idea
+/.idea
