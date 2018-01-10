@@ -51,6 +51,7 @@ define([
         '../Renderer/Texture',
         './BrdfLutGenerator',
         './Camera',
+        './Cesium3DTileSet',
         './CreditDisplay',
         './DebugCameraPrimitive',
         './DepthPlane',
@@ -63,6 +64,7 @@ define([
         './InvertClassification',
         './JobScheduler',
         './MapMode2D',
+        './Model',
         './OIT',
         './PerformanceDisplay',
         './PerInstanceColorAppearance',
@@ -129,6 +131,7 @@ define([
         Texture,
         BrdfLutGenerator,
         Camera,
+        Cesium3DTileset,
         CreditDisplay,
         DebugCameraPrimitive,
         DepthPlane,
@@ -141,6 +144,7 @@ define([
         InvertClassification,
         JobScheduler,
         MapMode2D,
+        Model,
         OIT,
         PerformanceDisplay,
         PerInstanceColorAppearance,
@@ -1713,8 +1717,11 @@ define([
             executeDebugCommand(command, scene, passState);
         } else if (lightShadowsEnabled && command.receiveShadows && defined(command.derivedCommands.shadows)) {
             // If the command receives shadows, execute the derived shadows command.
+            // 如果命令接收阴影，执行派生阴影命令。
             // Some commands, such as OIT derived commands, do not have derived shadow commands themselves
+            // 一些命令，例如OIT派生的命令，本身没有导出阴影命令
             // and instead shadowing is built-in. In this case execute the command regularly below.
+            // 相反，阴影是内置的。在本例中，定期执行下面的命令。
             command.derivedCommands.shadows.receiveCommand.execute(context, passState);
         } else if (scene.frameState.passes.depth && defined(command.derivedCommands.depth)) {
             command.derivedCommands.depth.depthOnlyCommand.execute(context, passState);
@@ -1858,6 +1865,7 @@ define([
         us.updateCamera(camera);
 
         // Create a working frustum from the original camera frustum.
+        // 从最初的相机视锥体创建一个工作视锥体
         var frustum;
         if (defined(camera.frustum.fov)) {
             frustum = camera.frustum.clone(scratchPerspectiveFrustum);
@@ -2466,6 +2474,8 @@ define([
             if (!depthOnly) {
                 executeComputeCommands(scene);
                 executeShadowMapCastCommands(scene);
+                // 执行通视分析代码
+                executeSightlineCommands(scene);
             }
         }
 
@@ -2597,6 +2607,11 @@ define([
 
         updateDebugFrustumPlanes(scene);
         updateShadowMaps(scene);
+
+        // 更新通视分析状态
+        if(scene.sightline){
+            scene.sightline.update(scene.frameState);
+        }
 
         if (scene._globe) {
             scene._globe.update(frameState);
@@ -2737,6 +2752,40 @@ define([
             functions[i]();
         }
         functions.length = 0;
+    }
+
+    // 绘制视锥下的framebuffer
+    function executeSightlineCommands(scene) {
+        if(scene.enableSightline){
+            // var frameState = scene.frameState;
+            var sightline = scene.sightline;
+            var context = scene.context;
+            var uniformState = context.uniformState;
+
+            var pass = sightline._pass;
+            pass.commandList.length = 0;
+
+            var sceneCommands = scene.frameState.commandList;
+            var length = sceneCommands.length;
+            for(var j = 0; j < length; ++j){
+                var cmd = sceneCommands[j];
+                if(cmd.owner && cmd.owner.primitive){
+                    if(cmd.owner.primitive._tilesetUrl || cmd.owner.primitive.constructor == Model){
+                        pass.commandList.push(cmd);
+                    }
+                }
+            }
+
+            uniformState.updateCamera(pass.camera);
+            // sightline.updatePass(context);
+
+            var numberOfCommands = pass.commandList.length;
+            for(var i = 0; i < numberOfCommands; ++i){
+                var command = pass.commandList[i];
+                uniformState.updatePass(command.pass);
+                executeCommand(command, scene, context, pass.passState);
+            }
+        }
     }
 
     /**
