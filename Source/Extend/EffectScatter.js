@@ -8,8 +8,11 @@ define([
     '../Core/ColorGeometryInstanceAttribute',
     '../Core/CircleGeometry',
     '../Core/DeveloperError',
+    '../Core/EllipseGeometry',
     '../Core/Geometry',
     '../Core/GeometryInstance',
+    '../Core/Math',
+    '../Core/VertexFormat',
     '../Scene/ClassificationType',
     '../Scene/GroundPrimitive',
     '../Scene/MaterialAppearance',
@@ -22,8 +25,11 @@ define([
              ColorGeometryInstanceAttribute,
              CircleGeometry,
              DeveloperError,
+             EllipseGeometry,
              Geometry,
              GeometryInstance,
+             Math,
+             VertexFormat,
              ClassificationType,
              GroundPrimitive,
              MaterialAppearance,
@@ -69,78 +75,39 @@ define([
     }
 
     EffectScatter.prototype.init = function () {
-        var fs = 'void main(){ \n' +
-                 '   gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); \n'+
+        var vs = '';
+        var fs = 'varying vec4 v_color; \n' +
+                 'uniform vec4 u_color; \n' +
+                 'void main(){ \n' +
+                 '   gl_FragColor = u_color; \n'+
                  '}';
         var appearance = new MaterialAppearance({
-            fragmentShaderSource: fs
+            fragmentShaderSource: fs,
+            // vertexShaderSource: vs
         });
-        this._primitive = new GroundPrimitive({
+        appearance.uniforms = {
+            u_color: this._color,
+            u_size: this._size,
+
+        };
+        this._primitive = new Primitive({
             geometryInstances: new GeometryInstance({
-                geometry: new CircleGeometry({
+                geometry: new EllipseGeometry({
                     center : this._position,
-                    radius : 1e5
+                    semiMinorAxis : 500000.0,
+                    semiMajorAxis : 500000.0
                 }),
                 attributes : {
-                    color : ColorGeometryInstanceAttribute.fromColor(new Color(1.0, 0.0, 0.0, 0.5))
+                    color : ColorGeometryInstanceAttribute.fromColor(Color.AQUA)
                 }
             }),
-            classificationType : ClassificationType.TERRAIN
+            appearance: appearance
         });
-        this._primitive = this._scene.groundPrimitives.add(this._primitive);
-        // this._scene.groundPrimitives.add(new GroundPrimitive({
-        //     geometryInstances : new GeometryInstance({
-        //         geometry : new CircleGeometry({
-        //             center : this._position,
-        //             radius : 250000.0
-        //         }),
-        //         attributes : {
-        //             color : ColorGeometryInstanceAttribute.fromColor(new Color(1.0, 0.0, 0.0, 0.5))
-        //         },
-        //         id : 'circle'
-        //     }),
-        //     classificationType : ClassificationType.TERRAIN
-        // }));
-        // this._primitive = new Primitive({
-        //     geometryInstances: new GeometryInstance({
-        //         geometry: new CircleGeometry({
-        //             center : this._position,
-        //             radius : this._size
-        //         }),
-        //         attributes : {
-        //             color : ColorGeometryInstanceAttribute.fromColor(Color.AQUA)
-        //         }
-        //     }),
-        //     appearance: appearance
-        // });
-        // this._primitive = this._scene.primitives.add(this._primitive);
+        this._primitive = this._scene.primitives.add(this._primitive);
     };
 
     EffectScatter.prototype.update = function (i) {
-        this._pointCollection.remove(this._pointCollection.get(1));
-        this._pointCollection.remove(this._pointCollection.get(2));
-        this._pointCollection.remove(this._pointCollection.get(3));
-        this._pointCollection.add({
-            position: this._position,
-            outlineColor: this._color,
-            color: new Color(0.0, 0.0, 0.0, 0.0),
-            pixelSize: this._size + 10 + i,
-            outlineWidth: 1
-        });
-        this._pointCollection.add({
-            position: this._position,
-            outlineColor: this._color,
-            color: new Color(0.0, 0.0, 0.0, 0.0),
-            pixelSize: this._size + 20 + i,
-            outlineWidth: 1
-        });
-        this._pointCollection.add({
-            position: this._position,
-            outlineColor: this._color,
-            color: new Color(0.0, 0.0, 0.0, 0.0),
-            pixelSize: this._size + 30 + i,
-            outlineWidth: 1
-        });
+
     };
 
     return EffectScatter;
