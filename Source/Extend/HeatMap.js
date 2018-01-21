@@ -2,6 +2,8 @@
  * Created by bingqx on 2018/1/16.
  */
 define([
+    '../Core/Cartesian3',
+    '../Core/Cartographic',
     '../Core/Credit',
     '../Core/defaultValue',
     '../Core/defined',
@@ -9,10 +11,19 @@ define([
     '../Core/DeveloperError',
     '../Core/Event',
     '../Core/GeographicTilingScheme',
+    '../Core/GeometryInstance',
+    '../Core/Math',
     '../Core/Rectangle',
+    '../Core/RectangleGeometry',
     '../Core/TileProviderError',
+    '../Core/WebMercatorProjection',
+    '../Scene/Material',
+    '../Scene/MaterialAppearance',
+    '../Scene/Primitive',
     '../ThirdParty/heatmap'
 ], function(
+    Cartesian3,
+    Cartographic,
     Credit,
     defaultValue,
     defined,
@@ -20,8 +31,15 @@ define([
     DeveloperError,
     Event,
     GeographicTilingScheme,
+    GeometryInstance,
+    CesiumMath,
     Rectangle,
+    RectangleGeometry,
     TileProviderError,
+    WebMercatorProjection,
+    Material,
+    MaterialAppearance,
+    Primitive,
     h337) {
     "use strict";
 
@@ -42,6 +60,8 @@ define([
         }
     };
 
+    var wmp = new WebMercatorProjection();
+
     /**
      * 热力图类
      * @param viewer
@@ -49,14 +69,14 @@ define([
      * @param options 热力图参数
      * @constructor
      * @example
-     * var viewer = new World3D("earth");
+     * var viewer = new Cesium.Viewer("earth");
      var boundingBox = {
                 north: 37.5,
                 south: 35.5,
                 east: -116,
                 west: -118
             };
-     let points = [{
+     var points = [{
                 x: -116.6455469,
                 y: 36.7355928,
                 value: 100
@@ -76,19 +96,20 @@ define([
         if (!defined(options.scene)) {
             throw new DeveloperError('options.scene is required.');
         }
+        this._hmoptions = {};
         this._scene = options.scene;
         this._id = this._getID();
         this._bounds = this._wgs84ToMercatorBbox(options.bbox);
         this._setWidthAndHeight(this._bounds);
-        // this._currentLevel = World3D.showLevel(this._viewer.scene);
+        this._currentLevel = getCenterLevel(this._scene);
 
-        this._gradient = defaultValue(options.gradient, HeatMapDefaults.gradient);
-        this._maxOpacity = defaultValue(options.maxOpacity, HeatMapDefaults.maxOpacity);
-        this._minOpacity = defaultValue(options.minOpacity, HeatMapDefaults.minOpacity);
-        this._blur = defaultValue(options.blur, HeatMapDefaults.blur);
-        this._radius = Math.round((this._options.radius) ? this._options.radius : ((this.width > this.height) ? this.width / HeatMapDefaults.radiusFactor : this.height / HeatMapDefaults.radiusFactor));
+        this._hmoptions.gradient = defaultValue(options.gradient, HeatMapDefaults.gradient);
+        this._hmoptions.maxOpacity = defaultValue(options.maxOpacity, HeatMapDefaults.maxOpacity);
+        this._hmoptions.minOpacity = defaultValue(options.minOpacity, HeatMapDefaults.minOpacity);
+        this._hmoptions.blur = defaultValue(options.blur, HeatMapDefaults.blur);
+        this._hmoptions.radius = (20 - this._currentLevel) * 3;
 
-        this._spacing = this._options.radius * HeatMapDefaults.spacingFactor;
+        this._spacing = this._hmoptions.radius * HeatMapDefaults.spacingFactor;
         this._xoffset = this._bounds.west;
         this._yoffset = this._bounds.south;
 
@@ -103,13 +124,11 @@ define([
         this._wbounds = this._mercatorToWgs84Bbox(this._bounds);
 
         this._rectangle = Rectangle.fromDegrees(this._wbounds.west, this._wbounds.south, this._wbounds.east, this._wbounds.north);
-        this._container = this._getContainer();
-        this._options.container = this._container;
-        // this._heatmap = h337.create(this._options);
-        this._heatmap = h337.create(Object.assign(this._options, {radius: (20 - this._currentLevel) * 3}));
-        this._container.children[0].setAttribute("id", this._id + "-hm");
+        this._hmoptions.container = this._container = this._getContainer();
+        // this._heatmap = h337.create(Object.assign(HeatMapDefaults, this._hmoptions));
+        this._heatmap = h337.create(Object.assign(this._hmoptions, {radius: 40000/(this._currentLevel*this._currentLevel*this._currentLevel)}));
+        this._container.children[0].setAttribute('id', this._id + '-hm');
     }
-
     /**
      * 生成ID
      * @param len ID长度，可选，默认为8
@@ -132,14 +151,14 @@ define([
      * @private
      */
     HeatMap.prototype._wgs84ToMercatorBbox = function (bbox) {
-        let ws = this._ct.fromWGS84ToMercator(Cesium.Cartographic.fromDegrees(bbox.west, bbox.south));
-        let en = this._ct.fromWGS84ToMercator(Cesium.Cartographic.fromDegrees(bbox.east, bbox.north));
+        var ws = wmp.project(Cartographic.fromDegrees(bbox.west, bbox.south));
+        var en = wmp.project(Cartographic.fromDegrees(bbox.east, bbox.north));
         return {
             north: en.y,
             east: en.x,
             south: ws.y,
             west: ws.x
-        }
+        };
     };
 
     /**
@@ -149,13 +168,13 @@ define([
      * @private
      */
     HeatMap.prototype._mercatorToWgs84Bbox = function (bbox) {
-        let ws = this._ct.fromMercatorToWGS84(new Cesium.Cartesian3(bbox.west, bbox.south));
-        let en = this._ct.fromMercatorToWGS84(new Cesium.Cartesian3(bbox.east, bbox.north));
+        var ws = wmp.unproject(new Cartesian3(bbox.west, bbox.south));
+        var en = wmp.unproject(new Cartesian3(bbox.east, bbox.north));
         return {
-            north: Cesium.Math.toDegrees(en.latitude),
-            east: Cesium.Math.toDegrees(en.longitude),
-            south: Cesium.Math.toDegrees(ws.latitude),
-            west: Cesium.Math.toDegrees(ws.longitude)
+            north: CesiumMath.toDegrees(en.latitude),
+            east: CesiumMath.toDegrees(en.longitude),
+            south: CesiumMath.toDegrees(ws.latitude),
+            west: CesiumMath.toDegrees(ws.longitude)
         };
     };
 
@@ -205,7 +224,7 @@ define([
      * @private
      */
     HeatMap.prototype._getContainer = function () {
-        let div = document.createElement('div');
+        var div = document.createElement('div');
         if (this._id) {
             div.setAttribute('id', this._id);
         }
@@ -222,17 +241,16 @@ define([
      * @returns {boolean} true为加载成果，false为加载失败
      */
     HeatMap.prototype.setWGS84Data = function (min, max, data) {
-        if (data && data.length > 0 && Cesium.defined(min) && Cesium.defined(max)) {
-            let convdata = [];
+        if (data && data.length > 0 && defined(min) && defined(max)) {
+            var convdata = [];
 
-            for ( let i = 0; i < data.length; i++ ) {
-                let gp = data[i];
+            for ( var i = 0; i < data.length; i++ ) {
+                var gp = data[i];
 
-                let hp = this._wgs84PointToHeatmapPoint(gp);
+                var hp = this._wgs84PointToHeatmapPoint(gp);
                 if (gp.value || gp.value === 0) {
                     hp.value = gp.value;
                 }
-
                 convdata.push(hp);
             }
             return this.setData(min, max, convdata);
@@ -246,11 +264,8 @@ define([
      * @private
      */
     HeatMap.prototype._wgs84PointToHeatmapPoint = function (pos) {
-        let result = this._ct.fromDegreesToCartographic({
-            lon: pos.x,
-            lat: pos.y
-        });
-        return this._mercatorPointToHeatmapPoint(this._ct.fromWGS84ToMercator(result))
+        var result = Cartographic.fromDegrees(pos.x, pos.y);
+        return this._mercatorPointToHeatmapPoint(wmp.project(result));
     };
 
     /**
@@ -260,7 +275,7 @@ define([
      * @private
      */
     HeatMap.prototype._mercatorPointToHeatmapPoint = function (pos) {
-        let pn = {};
+        var pn = {};
 
         pn.x = Math.round((pos.x - this._xoffset) / this._factor + this._spacing);
         pn.y = Math.round((pos.y - this._yoffset) / this._factor + this._spacing);
@@ -277,29 +292,29 @@ define([
      * @returns {boolean}
      */
     HeatMap.prototype.setData = function (min, max, data) {
-        if (data && data.length > 0 && Cesium.defined(min) && Cesium.defined(max)) {
+        if (data && data.length > 0 && defined(min) && defined(max)) {
             this._heatmap.setData({
                 min: min,
                 max: max,
                 data: data
             });
             this._updateLayer();
-
-            this.event = () => {
-                let level = World3D.showLevel(this._viewer.scene);
-                if (level !== this._currentLevel) {
-                    this._heatmap = h337.create(Object.assign(this._options, {radius: (20 - level) * 3}));
+            var that = this;
+            this.event = function (){
+                var level = getCenterLevel(that._scene);
+                if (level !== that._currentLevel) {
+                    that._heatmap = h337.create(Object.assign(that._hmoptions, {radius: 40000/(level * level * level)}));
                     // this._heatmap.configure({radius: (20 - level) * 5});
-                    this._heatmap.setData({
+                    that._heatmap.setData({
                         min: min,
                         max: max,
                         data: data
                     });
-                    this._updateLayer();
-                    this._currentLevel = level;
+                    that._updateLayer();
+                    that._currentLevel = level;
                 }
             };
-            this._viewer.scene.postRender.addEventListener(this.event);
+            this._scene.postRender.addEventListener(this.event);
             // this._viewer.scene.camera.moveEnd.addEventListener(this.event);
             return true;
         }
@@ -311,10 +326,9 @@ define([
      * @private
      */
     HeatMap.prototype._updateLayer = function () {
-
-        if (this._viewer.scene.primitives) {
+        if (this._scene.primitives) {
             if (this._layer) {
-                this._layer.appearance.material = new Cesium.Material({
+                this._layer.appearance.material = new Material({
                     fabric: {
                         uniforms: {
                             image: this._heatmap._renderer.canvas
@@ -336,16 +350,16 @@ define([
                         'return material;' +
                         '}'
                     }
-                })
+                });
             } else {
-                this._layer = this._viewer.scene.primitives.add(new Cesium.Primitive({
-                    geometryInstances: new Cesium.GeometryInstance({
-                        geometry: new Cesium.RectangleGeometry({
+                this._layer = this._scene.primitives.add(new Primitive({
+                    geometryInstances: new GeometryInstance({
+                        geometry: new RectangleGeometry({
                             rectangle: this._rectangle
                         })
                     }),
-                    appearance: new Cesium.MaterialAppearance({
-                        material: new Cesium.Material({
+                    appearance: new MaterialAppearance({
+                        material: new Material({
                             fabric: {
                                 uniforms: {
                                     image: this._heatmap._renderer.canvas
@@ -378,9 +392,39 @@ define([
      * 移除热力图层
      */
     HeatMap.prototype.destory = function () {
-        this._viewer.scene.primitives.remove(this._layer);
-        this._viewer.scene.postRender.removeEventListener(this.event);
+        this._scene.primitives.remove(this._layer);
+        this._scene.postRender.removeEventListener(this.event);
     };
+
+    function getCenterLevel(scene) {
+        var selectedTile;
+        var ellipsoid = scene.globe.ellipsoid;
+        var cartesian = scene.camera.pickEllipsoid({
+            x : scene.canvas.width / 2,
+            y : scene.canvas. height / 2
+        }, ellipsoid);
+
+        if (defined(cartesian)) {
+            var cartographic = ellipsoid.cartesianToCartographic(cartesian);
+            var tilesRendered = scene.globe._surface.tileProvider._tilesToRenderByTextureCount;
+            for (var textureCount = 0; !selectedTile && textureCount < tilesRendered.length; ++textureCount) {
+                var tilesRenderedByTextureCount = tilesRendered[textureCount];
+                if (!defined(tilesRenderedByTextureCount)) {
+                    continue;
+                }
+                for (var tileIndex = 0; !selectedTile && tileIndex < tilesRenderedByTextureCount.length; ++tileIndex) {
+                    var tile = tilesRenderedByTextureCount[tileIndex];
+                    if (Rectangle.contains(tile.rectangle, cartographic)) {
+                        selectedTile = tile;
+                    }
+                }
+            }
+            return selectedTile ? selectedTile._level: 0;
+        }else{
+            return 0;
+        }
+
+    }
 
     return HeatMap;
 });
