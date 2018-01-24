@@ -3,11 +3,25 @@
  */
 define([
     '../Core/Color',
+    '../Core/ColorGeometryInstanceAttribute',
     '../Core/defined',
-    '../Core/DeveloperError'
-],function (Color,
-    defined,
-    DeveloperError) {
+    '../Core/DeveloperError',
+    '../Core/GeometryInstance',
+    '../Core/Rectangle',
+    '../Core/RectangleGeometry',
+    '../Scene/MaterialAppearance',
+    '../Scene/PerInstanceColorAppearance',
+    '../Scene/Primitive',
+], function (Color,
+             ColorGeometryInstanceAttribute,
+             defined,
+             DeveloperError,
+             GeometryInstance,
+             Rectangle,
+             RectangleGeometry,
+             MaterialAppearance,
+             PerInstanceColorAppearance,
+             Primitive) {
     'use strict';
 
     /**
@@ -31,19 +45,44 @@ define([
         this._colorRampLabels = options.colorRampLabels;
         this._radius = options.radius;
         this._opacity = options.opacity;
+        this._range = options.range;
 
         this._updateColorRamp();
+        this._init();
     }
 
-    HeatMap.prototype.init = function () {
+    HeatMap.prototype._init = function () {
+        var instance = new GeometryInstance({
+            geometry: new RectangleGeometry({
+                rectangle: Rectangle.fromDegrees(this._range[0], this._range[1], this._range[2], this._range[3]),
+                vertexFormat: PerInstanceColorAppearance.VERTEX_FORMAT
+            }),
+            attributes: {
+                color: ColorGeometryInstanceAttribute.fromColor(new Color(1.0, 0.0, 0.0, 0.5))
+            }
+        });
+        var fs = 'uniform sampler2D u_colorRamp; \n' +
+                'uniform vec4 color; \n' +
+                'void main(){ \n' +
+                '   vec4 color2 = texture2D(u_colorRamp, vec2(0.0, 0.0)); \n' +
+                '   gl_FragColor = vec4(color2.xyz, 1.0); \n' +
+                '}';
+        var appearance = new MaterialAppearance({
+            fragmentShaderSource: fs
+        });
+        appearance.material.uniforms['u_colorRamp'] = this.colorRamp;
 
+        this.primitive = this._scene.primitives.add(new Primitive({
+            geometryInstances: [instance],
+            appearance: appearance
+        }));
     };
 
     // 更新颜色表
-    HeatMap.prototype._updateColorRamp = function(){
+    HeatMap.prototype._updateColorRamp = function () {
         var colorRampData = new Uint8ClampedArray(256 * 4);
         var len = colorRampData.length;
-        for (var i = 4; i < len; i += 4) {
+        for ( var i = 4; i < len; i += 4 ) {
             var pxColor = this._calcRampData((i / len));
             colorRampData[i + 0] = Math.floor(pxColor.red * 255 / pxColor.alpha);
             colorRampData[i + 1] = Math.floor(pxColor.green * 255 / pxColor.alpha);
@@ -56,7 +95,8 @@ define([
         canvas.width = 256;
         canvas.height = 1;
         var imageData = new ImageData(colorRampData, 256, 1);
-        this.colorRamp = ctx.putImageData(imageData, 0, 0);
+        ctx.putImageData(imageData, 0, 0);
+        this.colorRamp = canvas;
         this.colorRampTexture = null;
     };
 
@@ -66,8 +106,8 @@ define([
         var colors = this._colorRamp;
 
         var index;
-        for(var i = 0, len = labels.length;i < len-1; i++){
-            if(value >= labels[i] && value < labels[i+1]){
+        for ( var i = 0, len = labels.length; i < len - 1; i++ ) {
+            if (value >= labels[i] && value < labels[i + 1]) {
                 index = i;
             }
         }

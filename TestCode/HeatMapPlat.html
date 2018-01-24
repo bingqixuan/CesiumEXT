@@ -64,10 +64,11 @@
         var hm = new Cesium.HeatMapPlat({
             scene: viewer.scene,
             colorRamp: ["green","blue","yellow","red"],
-            colorRampLabels: [0, 0.4, 0.7, 1]
+            colorRampLabels: [0, 0.4, 0.7, 1],
+            range: [90, 0, 130, 50]
         })
 //Sandcastle_End
-//        Sandcastle.finishedLoading();
+        Sandcastle.finishedLoading();
     }
     if (typeof Cesium !== "undefined") {
         startup(Cesium);
