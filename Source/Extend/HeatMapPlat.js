@@ -7,8 +7,14 @@ define([
     '../Core/defined',
     '../Core/DeveloperError',
     '../Core/GeometryInstance',
+    '../Core/PixelFormat',
     '../Core/Rectangle',
     '../Core/RectangleGeometry',
+    '../Renderer/PixelDatatype',
+    '../Renderer/Sampler',
+    '../Renderer/Texture',
+    '../Renderer/TextureMagnificationFilter',
+    '../Renderer/TextureMinificationFilter',
     '../Scene/MaterialAppearance',
     '../Scene/PerInstanceColorAppearance',
     '../Scene/Primitive',
@@ -17,8 +23,14 @@ define([
              defined,
              DeveloperError,
              GeometryInstance,
+             PixelFormat,
              Rectangle,
              RectangleGeometry,
+             PixelDatatype,
+             Sampler,
+             Texture,
+             TextureMagnificationFilter,
+             TextureMinificationFilter,
              MaterialAppearance,
              PerInstanceColorAppearance,
              Primitive) {
@@ -56,21 +68,35 @@ define([
             geometry: new RectangleGeometry({
                 rectangle: Rectangle.fromDegrees(this._range[0], this._range[1], this._range[2], this._range[3]),
                 vertexFormat: PerInstanceColorAppearance.VERTEX_FORMAT
-            }),
-            attributes: {
-                color: ColorGeometryInstanceAttribute.fromColor(new Color(1.0, 0.0, 0.0, 0.5))
-            }
+            })
         });
+        var colorTexture = new Texture({
+            context: this._scene.context,
+            width: this.colorRamp.width,
+            height: this.colorRamp.height,
+            pixelFormat: PixelFormat.RGBA,
+            pixelDatatype: PixelDatatype.UNSIGNED_BUTE,
+            sampler: new Sampler({
+                // wrapS: TextureWrap.CLAMP_TO_EDGE,  // 默认值
+                // wrapT: TextureWrap.CLAMP_TO_EDGE,
+                minificationFilter: TextureMinificationFilter.NEAREST,
+                magnificationFilter: TextureMagnificationFilter.NEAREST
+            })
+        });
+        colorTexture.copyFrom(this.colorRamp);
+
         var fs = 'uniform sampler2D u_colorRamp; \n' +
                 'uniform vec4 color; \n' +
                 'void main(){ \n' +
-                '   vec4 color2 = texture2D(u_colorRamp, vec2(0.0, 0.0)); \n' +
+                '   vec4 color2 = texture2D(u_colorRamp, vec2(0.2, 0.2)); \n' +
                 '   gl_FragColor = vec4(color2.xyz, 1.0); \n' +
                 '}';
         var appearance = new MaterialAppearance({
             fragmentShaderSource: fs
         });
-        appearance.material.uniforms['u_colorRamp'] = this.colorRamp;
+        appearance.uniforms = {
+            'u_colorRamp': colorTexture
+        };
 
         this.primitive = this._scene.primitives.add(new Primitive({
             geometryInstances: [instance],
