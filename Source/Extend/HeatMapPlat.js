@@ -10,11 +10,14 @@ define([
     '../Core/PixelFormat',
     '../Core/Rectangle',
     '../Core/RectangleGeometry',
+    '../DataSources/CallbackProperty',
+    '../Renderer/Framebuffer',
     '../Renderer/PixelDatatype',
     '../Renderer/Sampler',
     '../Renderer/Texture',
     '../Renderer/TextureMagnificationFilter',
     '../Renderer/TextureMinificationFilter',
+    '../Scene/Material',
     '../Scene/MaterialAppearance',
     '../Scene/PerInstanceColorAppearance',
     '../Scene/Primitive',
@@ -26,11 +29,14 @@ define([
              PixelFormat,
              Rectangle,
              RectangleGeometry,
+             CallbackProperty,
+             Framebuffer,
              PixelDatatype,
              Sampler,
              Texture,
              TextureMagnificationFilter,
              TextureMinificationFilter,
+             Material,
              MaterialAppearance,
              PerInstanceColorAppearance,
              Primitive) {
@@ -68,12 +74,137 @@ define([
             geometry: new RectangleGeometry({
                 rectangle: Rectangle.fromDegrees(this._range[0], this._range[1], this._range[2], this._range[3]),
                 vertexFormat: PerInstanceColorAppearance.VERTEX_FORMAT
-            })
+            }),
+            // attributes: {
+            //     color: ColorGeometryInstanceAttribute.fromColor(new Color(1.0, 0.0, 0.0, 0.5))
+            // }
         });
+        // this.colorTexture = new Texture({
+        //     context: this._scene.context,
+        //     width: this.colorRamp.width,
+        //     height: this.colorRamp.height,
+        //     pixelFormat: PixelFormat.RGBA,
+        //     pixelDatatype: PixelDatatype.UNSIGNED_BUTE,
+        //     sampler: new Sampler({
+        //         // wrapS: TextureWrap.CLAMP_TO_EDGE,  // 默认值
+        //         // wrapT: TextureWrap.CLAMP_TO_EDGE,
+        //         minificationFilter: TextureMinificationFilter.NEAREST,
+        //         magnificationFilter: TextureMagnificationFilter.NEAREST
+        //     })
+        // });
+        // this.colorTexture.copyFrom(this.colorRamp);
+
+
+        var vs = `attribute vec3 position3DHigh; 
+attribute vec3 position3DLow;
+attribute vec3 normal;
+attribute vec2 st;
+attribute float batchId;
+
+varying vec3 v_positionEC;
+varying vec3 v_normalEC;
+varying vec2 v_st;
+
+void main()
+{
+    vec4 p = czm_computePosition();
+
+    v_positionEC = (czm_modelViewRelativeToEye * p).xyz;      // position in eye coordinates
+    v_normalEC = czm_normal * normal;                         // normal in eye coordinates
+    v_st = st;
+    v_st = vec2(st.y,st.x);
+
+    gl_Position = czm_modelViewProjectionRelativeToEye * p;
+}`;
+        var fs = `
+varying vec3 v_positionEC;
+varying vec3 v_normalEC;
+varying vec2 v_st;
+
+void main()
+{
+    vec3 positionToEyeEC = -v_positionEC;
+
+    vec3 normalEC = normalize(v_normalEC);;
+#ifdef FACE_FORWARD
+    normalEC = faceforward(normalEC, vec3(0.0, 0.0, 1.0), -normalEC);
+#endif
+
+    czm_materialInput materialInput;
+    materialInput.normalEC = normalEC;
+    materialInput.positionToEyeEC = positionToEyeEC;
+    materialInput.st = v_st;
+    czm_material material = czm_getMaterial(materialInput);
+
+    float coordX = 0.5;
+    if(length(positionToEyeEC) > 10000000.0){
+        coordX = 0.99;
+    }else{ 
+        coordX = length(positionToEyeEC) / 10000000.0;
+    }
+    vec4 color2 = texture2D(u_colorRamp_0, vec2(coordX, 0.5));
+    gl_FragColor = vec4(color2.xyz, 1.0);
+// #ifdef FLAT
+//     gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+//    gl_FragColor = vec4(material.diffuse + material.emission, material.alpha);
+// #else
+//     gl_FragColor = czm_phong(normalize(positionToEyeEC), material);
+// #endif
+}
+`;
+        // var fs =
+        //     // 'uniform sampler2D u_colorRamp; \n' +
+        //     // 'uniform float u_cameraHeight; \n' +
+        //     'varying vec3 v_positionEC; \n' +
+        //     'void main(){ \n' +
+        //     '   vec3 positionToEyeEC = -v_positionEC; \n' +
+        //     '   czm_material material = czm_getMaterial(materialInput); \n' +
+        //     '   float coordX = 0.5; \n' +
+        //     '   if(length(positionToEyeEC) > 10000000.0){ \n' +
+        //     '       coordX = 0.99; \n' +
+        //     '   }else{ \n' +
+        //     '       coordX = length(positionToEyeEC) / 10000000.0; \n' +
+        //     '   } \n' +
+        //     // '   float coordX = u_cameraHeight / 1e7 >= 1.0 ? 0.7 : u_cameraHeight / 1e7; \n' +
+        //     '   vec4 color2 = texture2D(u_colorRamp, vec2(coordX, 0.5)); \n' +
+        //     '   gl_FragColor = vec4(color2.xyz, 1.0); \n' +
+        //     '}';
+        var materail = new Material({
+            strict: false,
+            translucent: true,
+            fabric: {
+                uniforms:{
+                    u_colorRamp: this.colorRamp
+                },
+            },
+        });
+        var appearance = new MaterialAppearance({
+            fragmentShaderSource: fs,
+            vertexShaderSource: vs,
+            material: materail
+        });
+        // appearance.uniforms = {
+        //     // 'u_colorRamp': new CallbackProperty(()=> {
+        //     //     return this.colorRamp;
+        //     // }, false),
+        //     // 'u_cameraHeight': new CallbackProperty(()=> {
+        //     //     return this._scene._camera._positionCartographic.height;
+        //     // }, false),
+        //     'u_colorRamp': this.colorTexture,
+        //     // 'u_cameraHeight': this._scene._camera._positionCartographic.height
+        // };
+
+        this.primitive = this._scene.primitives.add(new Primitive({
+            geometryInstances: [instance],
+            appearance: appearance
+        }));
+    };
+
+    function createFramebuffer(ht, context) {
         var colorTexture = new Texture({
-            context: this._scene.context,
-            width: this.colorRamp.width,
-            height: this.colorRamp.height,
+            context: ht._scene.context,
+            width: ht.colorRamp.width,
+            height: ht.colorRamp.height,
             pixelFormat: PixelFormat.RGBA,
             pixelDatatype: PixelDatatype.UNSIGNED_BUTE,
             sampler: new Sampler({
@@ -83,32 +214,25 @@ define([
                 magnificationFilter: TextureMagnificationFilter.NEAREST
             })
         });
-        colorTexture.copyFrom(this.colorRamp);
 
-        var fs = 'uniform sampler2D u_colorRamp; \n' +
-                'uniform vec4 color; \n' +
-                'void main(){ \n' +
-                '   vec4 color2 = texture2D(u_colorRamp, vec2(0.2, 0.2)); \n' +
-                '   gl_FragColor = vec4(color2.xyz, 1.0); \n' +
-                '}';
-        var appearance = new MaterialAppearance({
-            fragmentShaderSource: fs
-        });
-        appearance.uniforms = {
-            'u_colorRamp': colorTexture
-        };
+        // var framebuffer = new Framebuffer({
+        //     context: context,
+        //     colorTextures: [colorTexture],
+        //     destroyAttachments: false
+        // });
 
-        this.primitive = this._scene.primitives.add(new Primitive({
-            geometryInstances: [instance],
-            appearance: appearance
-        }));
-    };
+        // var pass = ht._pass;
+        // pass.framebuffer = framebuffer;
+        // pass.passState.framebuffer = framebuffer;
+
+        ht._colorTexture = colorTexture;
+    }
 
     // 更新颜色表
     HeatMap.prototype._updateColorRamp = function () {
         var colorRampData = new Uint8ClampedArray(256 * 4);
         var len = colorRampData.length;
-        for ( var i = 4; i < len; i += 4 ) {
+        for (var i = 4; i < len; i += 4) {
             var pxColor = this._calcRampData((i / len));
             colorRampData[i + 0] = Math.floor(pxColor.red * 255 / pxColor.alpha);
             colorRampData[i + 1] = Math.floor(pxColor.green * 255 / pxColor.alpha);
@@ -132,7 +256,7 @@ define([
         var colors = this._colorRamp;
 
         var index;
-        for ( var i = 0, len = labels.length; i < len - 1; i++ ) {
+        for (var i = 0, len = labels.length; i < len - 1; i++) {
             if (value >= labels[i] && value < labels[i + 1]) {
                 index = i;
             }
