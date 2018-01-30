@@ -74,10 +74,7 @@ define([
             geometry: new RectangleGeometry({
                 rectangle: Rectangle.fromDegrees(this._range[0], this._range[1], this._range[2], this._range[3]),
                 vertexFormat: PerInstanceColorAppearance.VERTEX_FORMAT
-            }),
-            // attributes: {
-            //     color: ColorGeometryInstanceAttribute.fromColor(new Color(1.0, 0.0, 0.0, 0.5))
-            // }
+            })
         });
         // this.colorTexture = new Texture({
         //     context: this._scene.context,
