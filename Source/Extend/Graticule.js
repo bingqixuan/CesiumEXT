@@ -5,16 +5,23 @@ define([
     '../Core/Cartographic',
     '../Core/Color',
     '../Core/defined',
+    '../Core/PrimitiveType',
     '../Core/DeveloperError',
+    '../Renderer/Buffer',
+    '../Renderer/BufferUsage',
     '../Scene/LabelCollection',
 ],function (
     Cartographic,
     Color,
     defined,
+    PrimitiveType,
     DeveloperError,
+    Buffer,
+    BufferUsage,
     LabelCollection
 ) {
 
+    'use strict';
     /**
      * 经纬网
      * @constructor
@@ -37,7 +44,7 @@ define([
         var that = this;
         var childUniforms = {
             u_LineColor: function () {
-                return that.m_Color;
+                return that._color;
             }
         };
         this._uniforms = combine(this._uniforms, childUniforms);
@@ -46,9 +53,8 @@ define([
         this.m_LatLabels = new Map();
         this._labelCollection = undefined;
 
-        this.m_scene = undefined;
-        this.m_LabelColor = new Color(255, 0, 0, 255);
-        this.m_LabelSize = 20;
+        this.labelColor = new Color(255, 0, 0, 255);
+        this.labelSize = 20;
     }
 
     Graticule.prototype.CreateLabels = function () {
@@ -56,10 +62,10 @@ define([
         var ellipsoid = this._scene.globe.ellipsoid;
         var worldPos = ellipsoid.cartographicToCartesian(new Cartographic(0, 0, 0));
 
-        var textArray = ["°N", "°S", "Equator", "Prime meridian", "°E", "°W"];
+        var textArray = ['°N', '°S', 'Equator', 'Prime meridian', '°E', '°W'];
 
         //纬线标注
-        var preText = undefined;
+        var preText;
         for (var iy = 0; iy < iSizeY; ++iy) {
             var lat = dStartLat + iy * dIntervalY;
             if (lat > 0) {
@@ -99,6 +105,55 @@ define([
             });
             this.m_LonLabels[lon] = label2;
         }
-    }
+    };
+
+    Graticule.prototype.CreateMesh = function (context, mesh) {
+        var attributeLocations = {
+            Position: 0,
+            HLevel: 1
+        };
+        //创建mesh
+        var buffer1 = Buffer.createVertexBuffer({
+            context: context,
+            typedArray: mesh.m_vertexs,
+            usage: BufferUsage.STATIC_DRAW
+        });
+
+        var indexBuffer = Buffer.createIndexBuffer({
+            context: context,
+            typedArray: mesh.m_indices,
+            usage: BufferUsage.STATIC_DRAW,
+            indexDatatype: IndexDatatype.UNSIGNED_SHORT
+        });
+
+        var iSizeInBytes1 = Float32Array.BYTES_PER_ELEMENT;
+        var iStride1 = 3 * iSizeInBytes1;
+
+        var attributes = [
+            {
+                index: attributeLocations.Position,
+                vertexBuffer: buffer1,
+                componentsPerAttribute: 2,
+                componentDatatype: ComponentDatatype.FLOAT,
+                offsetInBytes: 0,
+                strideInBytes: iStride1
+            },
+            {
+                index: attributeLocations.HLevel,
+                vertexBuffer: buffer1,
+                componentsPerAttribute: 1,//tag此值和shader里的属性数据类型相关
+                componentDatatype: ComponentDatatype.FLOAT,//tag此值和shader里的属性数据类型相关
+                normalize: false,
+                offsetInBytes: 2 * iSizeInBytes1,
+                strideInBytes: iStride1
+            }
+        ];
+        var vertexArray = new VertexArray({
+            context: context,
+            attributes: attributes,
+            indexBuffer: indexBuffer
+        });
+        return vertexArray;
+    };
     return Graticule;
 });
