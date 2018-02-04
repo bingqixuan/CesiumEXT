@@ -24,7 +24,7 @@ define([
      * @param {Object} urls The source URL of each image.  See the example below.
      * @param {Boolean} [allowCrossOrigin=true] Whether to request the image using Cross-Origin
      *        Resource Sharing (CORS).  CORS is only actually used if the image URL is actually cross-origin.
-     *        Data URIs are never requested using CORS.
+     *        Core URIs are never requested using CORS.
      * @returns {Promise.<CubeMap>} a promise that will resolve to the requested {@link CubeMap} when loaded.
      *
      * @exception {DeveloperError} context is required.

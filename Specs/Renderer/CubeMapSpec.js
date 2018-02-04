@@ -85,19 +85,19 @@ defineSuite([
         context = createContext();
 
         var promises = [];
-        promises.push(loadImage('./Data/Images/Green.png').then(function(result) {
+        promises.push(loadImage('./Core/Images/Green.png').then(function(result) {
             greenImage = result;
         }));
-        promises.push(loadImage('./Data/Images/Blue.png').then(function(result) {
+        promises.push(loadImage('./Core/Images/Blue.png').then(function(result) {
             blueImage = result;
         }));
-        promises.push(loadImage('./Data/Images/BlueAlpha.png').then(function(result) {
+        promises.push(loadImage('./Core/Images/BlueAlpha.png').then(function(result) {
             blueAlphaImage = result;
         }));
-        promises.push(loadImage('./Data/Images/BlueOverRed.png').then(function(result) {
+        promises.push(loadImage('./Core/Images/BlueOverRed.png').then(function(result) {
             blueOverRedImage = result;
         }));
-        promises.push(loadImage('./Data/Images/Red16x16.png').then(function(result) {
+        promises.push(loadImage('./Core/Images/Red16x16.png').then(function(result) {
             red16x16Image = result;
         }));
 

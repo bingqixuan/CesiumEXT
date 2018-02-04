@@ -199,6 +199,13 @@ define([
          */
         this.maximumZoomFactor = 1.5;
 
+        /**
+         * 用来计算经纬网的一个变量
+         * @type {number}
+         * @private
+         */
+        this._measuringScale = 0.0;
+
         this._moveStart = new Event();
         this._moveEnd = new Event();
 
@@ -908,6 +915,7 @@ define([
         }
     });
 
+    var scratchCartesian2 = new Cartesian2();
     /**
      * @private
      */
@@ -959,6 +967,23 @@ define([
             this._suspendTerrainAdjustment = !globeFinishedUpdating;
         }
         this._adjustHeightForTerrain();
+
+        // 用来计算_measuringScale。取中心点区域两点像素所对应的笛卡尔坐标，计算两点的距离即为_measuringScale
+        var canvas = this._scene.canvas;
+        if (defined(canvas)) {
+            scratchCartesian2.x = canvas.clientWidth * 0.5;
+            scratchCartesian2.y = canvas.clientHeight * 0.5;
+            var centerCartesian = this.pickEllipsoid(scratchCartesian2);
+            scratchCartesian2.y += 1;
+            var centerCartesian2 = this.pickEllipsoid(scratchCartesian2);
+            if (centerCartesian !== undefined && centerCartesian2 !== undefined) {
+                this._measuringScale = Cartesian3.distance(centerCartesian, centerCartesian2);
+            }
+            // if (defined(centerCartesian)) {
+            //     this._lookAtPositionWC = centerCartesian;
+            //     this._lookAtDistance = Cartesian3.distance(this._lookAtPositionWC, this._positionWC);
+            // }
+        }
     };
 
     var setTransformPosition = new Cartesian3();

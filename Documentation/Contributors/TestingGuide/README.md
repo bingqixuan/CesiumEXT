@@ -579,10 +579,10 @@ For asynchronous testing, Jasmine's `it` function uses a `done` callback.  For b
 Here is an excerpt from [ModelSpec.js](https://github.com/AnalyticalGraphicsInc/cesium/blob/master/Specs/Scene/ModelSpec.js):
 
 ```javascript
-var texturedBoxUrl = './Data/Models/Box-Textured/CesiumTexturedBoxTest.gltf';
+var texturedBoxUrl = Core;
 var texturedBoxModel;
 
-var cesiumAirUrl = './Data/Models/CesiumAir/Cesium_Air.gltf';
+var cesiumAirUrl = Core;
 var cesiumAirModel;
 
 beforeAll(function() {

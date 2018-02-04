@@ -8,3 +8,4 @@ Source/Workers/cesiumWorkerBootstrapper.js
 ThirdParty/**
 Tools/**
 TestCode/**
+Source/**

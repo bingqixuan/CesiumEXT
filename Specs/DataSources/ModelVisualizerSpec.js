@@ -42,7 +42,7 @@ defineSuite([
         pollToPromise) {
     'use strict';
 
-    var boxUrl = './Data/Models/Box/CesiumBoxTest.gltf';
+    var boxUrl = './Core/Models/Box/CesiumBoxTest.gltf';
 
     var scene;
     var visualizer;

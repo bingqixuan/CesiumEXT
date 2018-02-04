@@ -10,7 +10,7 @@ function convertRegex(character){
 }
 return declare("dojo.data.ObjectStore", [Evented],{
 		// summary:
-		//		A Dojo Data implementation that wraps Dojo object stores for backwards
+		//		A Dojo Core implementation that wraps Dojo object stores for backwards
 		//		compatibility.
 
 		objectStore: null,

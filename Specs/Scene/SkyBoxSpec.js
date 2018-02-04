@@ -17,7 +17,7 @@ defineSuite([
     beforeAll(function() {
         scene = createScene();
 
-        return loadImage('./Data/Images/Blue.png').then(function(image) {
+        return loadImage('./Core/Images/Blue.png').then(function(image) {
             loadedImage = image;
         });
     });
@@ -56,12 +56,12 @@ defineSuite([
     it('does not render when show is false', function() {
         skyBox = new SkyBox({
             sources : {
-                positiveX : './Data/Images/Blue.png',
-                negativeX : './Data/Images/Blue.png',
-                positiveY : './Data/Images/Blue.png',
-                negativeY : './Data/Images/Blue.png',
-                positiveZ : './Data/Images/Blue.png',
-                negativeZ : './Data/Images/Blue.png'
+                positiveX : './Core/Images/Blue.png',
+                negativeX : './Core/Images/Blue.png',
+                positiveY : './Core/Images/Blue.png',
+                negativeY : './Core/Images/Blue.png',
+                positiveZ : './Core/Images/Blue.png',
+                negativeZ : './Core/Images/Blue.png'
             },
             show : false
         });
@@ -75,12 +75,12 @@ defineSuite([
     it('does not render in 2D', function() {
         skyBox = new SkyBox({
             sources : {
-                positiveX : './Data/Images/Blue.png',
-                negativeX : './Data/Images/Blue.png',
-                positiveY : './Data/Images/Blue.png',
-                negativeY : './Data/Images/Blue.png',
-                positiveZ : './Data/Images/Blue.png',
-                negativeZ : './Data/Images/Blue.png'
+                positiveX : './Core/Images/Blue.png',
+                negativeX : './Core/Images/Blue.png',
+                positiveY : './Core/Images/Blue.png',
+                negativeY : './Core/Images/Blue.png',
+                positiveZ : './Core/Images/Blue.png',
+                negativeZ : './Core/Images/Blue.png'
             }
         });
 
@@ -94,12 +94,12 @@ defineSuite([
     it('does not render without a render pass', function() {
         skyBox = new SkyBox({
             sources : {
-                positiveX : './Data/Images/Blue.png',
-                negativeX : './Data/Images/Blue.png',
-                positiveY : './Data/Images/Blue.png',
-                negativeY : './Data/Images/Blue.png',
-                positiveZ : './Data/Images/Blue.png',
-                negativeZ : './Data/Images/Blue.png'
+                positiveX : './Core/Images/Blue.png',
+                negativeX : './Core/Images/Blue.png',
+                positiveY : './Core/Images/Blue.png',
+                negativeY : './Core/Images/Blue.png',
+                positiveZ : './Core/Images/Blue.png',
+                negativeZ : './Core/Images/Blue.png'
             }
         });
 
@@ -135,12 +135,12 @@ defineSuite([
     it('isDestroyed', function() {
         skyBox = new SkyBox({
             sources : {
-                positiveX : './Data/Images/Blue.png',
-                negativeX : './Data/Images/Blue.png',
-                positiveY : './Data/Images/Blue.png',
-                negativeY : './Data/Images/Blue.png',
-                positiveZ : './Data/Images/Blue.png',
-                negativeZ : './Data/Images/Blue.png'
+                positiveX : './Core/Images/Blue.png',
+                negativeX : './Core/Images/Blue.png',
+                positiveY : './Core/Images/Blue.png',
+                negativeY : './Core/Images/Blue.png',
+                positiveZ : './Core/Images/Blue.png',
+                negativeZ : './Core/Images/Blue.png'
             }
         });
         expect(skyBox.isDestroyed()).toEqual(false);
@@ -152,11 +152,11 @@ defineSuite([
     it('throws when constructed without positiveX', function() {
         skyBox = new SkyBox({
             sources : {
-                negativeX : './Data/Images/Blue.png',
-                positiveY : './Data/Images/Blue.png',
-                negativeY : './Data/Images/Blue.png',
-                positiveZ : './Data/Images/Blue.png',
-                negativeZ : './Data/Images/Blue.png'
+                negativeX : './Core/Images/Blue.png',
+                positiveY : './Core/Images/Blue.png',
+                negativeY : './Core/Images/Blue.png',
+                positiveZ : './Core/Images/Blue.png',
+                negativeZ : './Core/Images/Blue.png'
             }
         });
         scene.skyBox = skyBox;
@@ -169,11 +169,11 @@ defineSuite([
     it('throws when constructed without negativeX', function() {
         skyBox = new SkyBox({
             sources : {
-                positiveX : './Data/Images/Blue.png',
-                positiveY : './Data/Images/Blue.png',
-                negativeY : './Data/Images/Blue.png',
-                positiveZ : './Data/Images/Blue.png',
-                negativeZ : './Data/Images/Blue.png'
+                positiveX : './Core/Images/Blue.png',
+                positiveY : './Core/Images/Blue.png',
+                negativeY : './Core/Images/Blue.png',
+                positiveZ : './Core/Images/Blue.png',
+                negativeZ : './Core/Images/Blue.png'
             }
         });
         scene.skyBox = skyBox;
@@ -186,11 +186,11 @@ defineSuite([
     it('throws when constructed without positiveY', function() {
         skyBox = new SkyBox({
             sources : {
-                positiveX : './Data/Images/Blue.png',
-                negativeX : './Data/Images/Blue.png',
-                negativeY : './Data/Images/Blue.png',
-                positiveZ : './Data/Images/Blue.png',
-                negativeZ : './Data/Images/Blue.png'
+                positiveX : './Core/Images/Blue.png',
+                negativeX : './Core/Images/Blue.png',
+                negativeY : './Core/Images/Blue.png',
+                positiveZ : './Core/Images/Blue.png',
+                negativeZ : './Core/Images/Blue.png'
             }
         });
         scene.skyBox = skyBox;
@@ -203,11 +203,11 @@ defineSuite([
     it('throws when constructed without negativeY', function() {
         skyBox = new SkyBox({
             sources : {
-                positiveX : './Data/Images/Blue.png',
-                negativeX : './Data/Images/Blue.png',
-                positiveY : './Data/Images/Blue.png',
-                positiveZ : './Data/Images/Blue.png',
-                negativeZ : './Data/Images/Blue.png'
+                positiveX : './Core/Images/Blue.png',
+                negativeX : './Core/Images/Blue.png',
+                positiveY : './Core/Images/Blue.png',
+                positiveZ : './Core/Images/Blue.png',
+                negativeZ : './Core/Images/Blue.png'
             }
         });
         scene.skyBox = skyBox;
@@ -220,11 +220,11 @@ defineSuite([
     it('throws when constructed without positiveZ', function() {
         skyBox = new SkyBox({
             sources : {
-                positiveX : './Data/Images/Blue.png',
-                negativeX : './Data/Images/Blue.png',
-                positiveY : './Data/Images/Blue.png',
-                negativeY : './Data/Images/Blue.png',
-                negativeZ : './Data/Images/Blue.png'
+                positiveX : './Core/Images/Blue.png',
+                negativeX : './Core/Images/Blue.png',
+                positiveY : './Core/Images/Blue.png',
+                negativeY : './Core/Images/Blue.png',
+                negativeZ : './Core/Images/Blue.png'
             }
         });
         scene.skyBox = skyBox;
@@ -237,11 +237,11 @@ defineSuite([
     it('throws when constructed without negativeZ', function() {
         skyBox = new SkyBox({
             sources : {
-                positiveX : './Data/Images/Blue.png',
-                negativeX : './Data/Images/Blue.png',
-                positiveY : './Data/Images/Blue.png',
-                negativeY : './Data/Images/Blue.png',
-                positiveZ : './Data/Images/Blue.png'
+                positiveX : './Core/Images/Blue.png',
+                negativeX : './Core/Images/Blue.png',
+                positiveY : './Core/Images/Blue.png',
+                negativeY : './Core/Images/Blue.png',
+                positiveZ : './Core/Images/Blue.png'
             }
         });
         scene.skyBox = skyBox;
@@ -255,11 +255,11 @@ defineSuite([
         skyBox = new SkyBox({
             sources : {
                 positiveX : loadedImage,
-                negativeX : './Data/Images/Blue.png',
-                positiveY : './Data/Images/Blue.png',
-                negativeY : './Data/Images/Blue.png',
-                positiveZ : './Data/Images/Blue.png',
-                negativeZ : './Data/Images/Blue.png'
+                negativeX : './Core/Images/Blue.png',
+                positiveY : './Core/Images/Blue.png',
+                negativeY : './Core/Images/Blue.png',
+                positiveZ : './Core/Images/Blue.png',
+                negativeZ : './Core/Images/Blue.png'
             }
         });
         scene.skyBox = skyBox;
@@ -272,12 +272,12 @@ defineSuite([
     it('throws when constructed when negativeX is a different type', function() {
         skyBox = new SkyBox({
             sources : {
-                positiveX : './Data/Images/Blue.png',
+                positiveX : './Core/Images/Blue.png',
                 negativeX : loadedImage,
-                positiveY : './Data/Images/Blue.png',
-                negativeY : './Data/Images/Blue.png',
-                positiveZ : './Data/Images/Blue.png',
-                negativeZ : './Data/Images/Blue.png'
+                positiveY : './Core/Images/Blue.png',
+                negativeY : './Core/Images/Blue.png',
+                positiveZ : './Core/Images/Blue.png',
+                negativeZ : './Core/Images/Blue.png'
             }
         });
         scene.skyBox = skyBox;
@@ -290,12 +290,12 @@ defineSuite([
     it('throws when constructed when positiveY is a different type', function() {
         skyBox = new SkyBox({
             sources : {
-                positiveX : './Data/Images/Blue.png',
-                negativeX : './Data/Images/Blue.png',
+                positiveX : './Core/Images/Blue.png',
+                negativeX : './Core/Images/Blue.png',
                 positiveY : loadedImage,
-                negativeY : './Data/Images/Blue.png',
-                positiveZ : './Data/Images/Blue.png',
-                negativeZ : './Data/Images/Blue.png'
+                negativeY : './Core/Images/Blue.png',
+                positiveZ : './Core/Images/Blue.png',
+                negativeZ : './Core/Images/Blue.png'
             }
         });
         scene.skyBox = skyBox;
@@ -308,12 +308,12 @@ defineSuite([
     it('throws when constructed when negativeY is a different type', function() {
         skyBox = new SkyBox({
             sources : {
-                positiveX : './Data/Images/Blue.png',
-                negativeX : './Data/Images/Blue.png',
-                positiveY : './Data/Images/Blue.png',
+                positiveX : './Core/Images/Blue.png',
+                negativeX : './Core/Images/Blue.png',
+                positiveY : './Core/Images/Blue.png',
                 negativeY : loadedImage,
-                positiveZ : './Data/Images/Blue.png',
-                negativeZ : './Data/Images/Blue.png'
+                positiveZ : './Core/Images/Blue.png',
+                negativeZ : './Core/Images/Blue.png'
             }
         });
         scene.skyBox = skyBox;
@@ -326,12 +326,12 @@ defineSuite([
     it('throws when constructed when positiveZ is a different type', function() {
         skyBox = new SkyBox({
             sources : {
-                positiveX : './Data/Images/Blue.png',
-                negativeX : './Data/Images/Blue.png',
-                positiveY : './Data/Images/Blue.png',
-                negativeY : './Data/Images/Blue.png',
+                positiveX : './Core/Images/Blue.png',
+                negativeX : './Core/Images/Blue.png',
+                positiveY : './Core/Images/Blue.png',
+                negativeY : './Core/Images/Blue.png',
                 positiveZ : loadedImage,
-                negativeZ : './Data/Images/Blue.png'
+                negativeZ : './Core/Images/Blue.png'
             }
         });
         scene.skyBox = skyBox;
@@ -344,11 +344,11 @@ defineSuite([
     it('throws when constructed when negativeZ is a different type', function() {
         skyBox = new SkyBox({
             sources : {
-                positiveX : './Data/Images/Blue.png',
-                negativeX : './Data/Images/Blue.png',
-                positiveY : './Data/Images/Blue.png',
-                negativeY : './Data/Images/Blue.png',
-                positiveZ : './Data/Images/Blue.png',
+                positiveX : './Core/Images/Blue.png',
+                negativeX : './Core/Images/Blue.png',
+                positiveY : './Core/Images/Blue.png',
+                negativeY : './Core/Images/Blue.png',
+                positiveZ : './Core/Images/Blue.png',
                 negativeZ : loadedImage
             }
         });

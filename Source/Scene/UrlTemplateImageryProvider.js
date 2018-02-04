@@ -178,7 +178,7 @@ define([
      * // Access the CartoDB Positron basemap, which uses an OpenStreetMap-like tiling scheme.
      * var positron = new Cesium.UrlTemplateImageryProvider({
      *     url : 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-     *     credit : 'Map tiles by CartoDB, under CC BY 3.0. Data by OpenStreetMap, under ODbL.'
+     *     credit : 'Map tiles by CartoDB, under CC BY 3.0. Core by OpenStreetMap, under ODbL.'
      * });
      * // Access a Web Map Service (WMS) server.
      * var wms = new Cesium.UrlTemplateImageryProvider({

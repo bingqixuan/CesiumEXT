@@ -345,6 +345,9 @@ define([
 
         this._defaultTexture = undefined;
 
+        // 未加载纹理数量
+        this.unLoadedTextureSize = 0;
+
         initializeMaterial(options, this);
         defineProperties(this, {
             type : {
@@ -467,6 +470,8 @@ define([
             }
 
             this._textures[uniformId] = texture;
+            // 纹理加载完成后，相应的减少纹理数量
+            this.unLoadedTextureSize--;
 
             var uniformDimensionsName = uniformId + 'Dimensions';
             if (this.uniforms.hasOwnProperty(uniformDimensionsName)) {
@@ -515,6 +520,14 @@ define([
                 subMaterials[name].update(context);
             }
         }
+    };
+
+    /**
+     * 判断纹理是否加载完毕
+     * @returns {boolean}
+     */
+    Material.prototype.isTextureLoaded = function() {
+        return this.unLoadedTextureSize === 0;
     };
 
     /**
@@ -937,11 +950,15 @@ define([
                     return material._textures[uniformId];
                 };
                 material._updateFunctions.push(createTexture2DUpdateFunction(uniformId));
+                // 未加载纹理数量++
+                material.unLoadedTextureSize++;
             } else if (uniformType === 'samplerCube') {
                 material._uniforms[newUniformId] = function() {
                     return material._textures[uniformId];
                 };
                 material._updateFunctions.push(createCubeMapUpdateFunction(uniformId));
+                // 未加载纹理数量++
+                material.unLoadedTextureSize++;
             } else if (uniformType.indexOf('mat') !== -1) {
                 var scratchMatrix = new matrixMap[uniformType]();
                 material._uniforms[newUniformId] = function() {

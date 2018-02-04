@@ -1248,7 +1248,7 @@ var warnings = {
 	W101: "Line is too long.",
 	W102: "Trailing whitespace.",
 	W103: "The '{a}' property is deprecated.",
-	W104: "'{a}' is only available in JavaScript 1.7.",
+	W104: null,
 	W105: "Unexpected {a} in '{b}'.",
 	W106: "Identifier '{a}' is not in camel case.",
 	W107: "Script URL.",
@@ -2938,7 +2938,7 @@ Lexer.prototype = {
 					line: this.line,
 					character: this.char
 				}, checks, function () {
-					return state.directive["use strict"] && token.base === 8; 
+					return state.directive["use strict"] && token.base === 8;
 				});
 
 				this.trigger("Number", {
@@ -11252,7 +11252,7 @@ SlowBuffer.prototype.writeDoubleBE = Buffer.prototype.writeDoubleBE;
 
 	function b64ToByteArray(b64) {
 		var i, j, l, tmp, placeHolders, arr;
-	
+
 		if (b64.length % 4 > 0) {
 			throw 'Invalid string. Length must be a multiple of 4';
 		}
