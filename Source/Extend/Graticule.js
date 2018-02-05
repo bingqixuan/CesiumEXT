@@ -47,10 +47,16 @@ define([
 
     /**
      * 经纬网
+     * @param {Object} options
+     * @param {Scene} options.scene 场景
+     * @param {Boolean} [options.depthTestEnabled] 是否开启深度测试
+     * @param {Boolean} [options.show] 是否显示
+     * @param {String} [options.name] 对象名称
+     * @param {Number} [options.id] 对象ID
      * @constructor
      */
     function Graticule(options) {
-        // 继承RenderObject
+        // 继承RenderObject类
         RenderObject.call(this, options);
 
         if (!defined(options.scene)) {
@@ -310,6 +316,17 @@ define([
             });
             this._lonLabels[lon] = label2;
         }
+    };
+
+    /**
+     * 销毁对象
+     */
+    Graticule.prototype.destroy = function () {
+        if (this._scene === undefined) {
+            return;
+        }
+        this._scene.primitives.remove(this._labelCollection);
+        RenderObject.prototype.destroy.call(this);
     };
 
     return Graticule;

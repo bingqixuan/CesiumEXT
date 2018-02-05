@@ -68,6 +68,20 @@ define([
              CoorConvertVS) {
     'use strict';
 
+    /**
+     * 渲染基础对象
+     * @param {Object} options
+     * @param {Boolean} [options.depthTestEnabled] 是否开启深度测试
+     * @param {Boolean} [options.show] 是否显示
+     * @param {String} [options.name] 对象名称
+     * @param {Number} [options.id] 对象ID
+     * @param {Material} [options.material] 对象材质
+     * @param {String} [options.vertexShaderSource] 顶点着色器
+     * @param {String} [options.fragmentShaderSource] 片元着色器
+     *
+     * @private
+     * @constructor
+     */
     function RenderObject(options) {
         //Primitive.call(this,options);
         options = defaultValue(options, defaultValue.EMPTY_OBJECT);
@@ -121,8 +135,8 @@ define([
         this._meshs = [];//mesh数组
         this._drawCommandArray = [];//绘制命令数组
 
-        this._PrimitiveType = PrimitiveType.TRIANGLES;
-        this._Pass = Pass.OPAQUE;
+        this._primitiveType = PrimitiveType.TRIANGLES;
+        this._pass = Pass.OPAQUE;
 
         var that = this;
         this._uniforms = {
@@ -146,11 +160,11 @@ define([
 
     RenderObject.prototype.addMesh = function (mesh) {
         this._meshs.push(mesh);
-    }
+    };
 
     //virtual
     RenderObject.prototype.createMesh = function (context, mesh) {
-    }
+    };
 
     //virtual
     RenderObject.prototype.createBuffer = function (context) {
@@ -159,7 +173,7 @@ define([
             var vertexArray = this.createMesh(context, this._meshs[i]);
             this._va.push(vertexArray);
         }
-    }
+    };
 
     //virtual
     RenderObject.prototype.combineShader = function (context) {
@@ -199,15 +213,15 @@ define([
         //相机距离和场景模式
         if (frameState.mode === SceneMode.SCENE3D) {
             this._projectionType = 0;
-            this.m_dCameraDistance = frameState.camera.lookAtDistance;
+            this._cameraDistance = frameState.camera.lookAtDistance;
         }
         else if (frameState.mode === SceneMode.SCENE2D) {
             this._projectionType = 2;
-            //this.m_dCameraDistance = frameState.camera.positionCartographic.height;
+            //this._cameraDistance = frameState.camera.positionCartographic.height;
         }
         else if (frameState.mode === SceneMode.COLUMBUS_VIEW) {
             this._projectionType = 2;
-            this.m_dCameraDistance = frameState.camera.positionCartographic.height;
+            this._cameraDistance = frameState.camera.positionCartographic.height;
         }
 
         if (!defined(this.material)) {
@@ -231,11 +245,11 @@ define([
         }
 
         //TODO眼睛到球面的距离
-        //this.m_dCameraDistance = how much?;
+        //this._cameraDistance = how much?;
         //TODO相机参考位置点
         // DoubleToTwoFloat(pCamera->GetReferenceCenter(), this._camRefCenterPosHigh, this._camRefCenterPosLow);
         return true;
-    }
+    };
 
     //virtual渲染
     RenderObject.prototype.update = function (frameState) {
@@ -263,7 +277,7 @@ define([
             //绘制命令
             for (var i = 0; i < this._va.length; ++i) {
                 var colorCommand = new DrawCommand({
-                    primitiveType: this._PrimitiveType,
+                    primitiveType: this._primitiveType,
                     boundingVolume: new BoundingSphere(),
                     owner: this
                 });
@@ -294,13 +308,13 @@ define([
                 var colorCommandj = this._drawCommandArray[j];
                 colorCommandj.boundingVolume = this._boundingSphere;
                 colorCommandj.modelMatrix = this._computedModelMatrix;
-                colorCommandj.pass = this._Pass;
+                colorCommandj.pass = this._pass;
                 commandList.push(colorCommandj);
             }
         }
         this.endRender(frameState);
         return bSuccess;
-    }
+    };
 
     //virtual
     RenderObject.prototype.endRender = function (frameState) {
@@ -308,7 +322,7 @@ define([
 
         }
         return true;
-    }
+    };
 
     RenderObject.prototype.destroy = function () {
         var length;
@@ -324,8 +338,8 @@ define([
     };
 
     RenderObject.prototype.setPass = function (pass) {
-        this._Pass = pass;
-    }
+        this._pass = pass;
+    };
 
     //设置透明度
     RenderObject.prototype.setTransparent = function (nTrans) {
@@ -335,7 +349,7 @@ define([
     //设置是否可见
     RenderObject.prototype.setVisible = function (bVisible) {
         this.show = bVisible;
-    }
+    };
 
     return RenderObject;
 });
